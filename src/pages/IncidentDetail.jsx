@@ -110,7 +110,7 @@ function ActionPanel({ inc }) {
               </select>
               <p className="draft"><span className="small muted">Drafted notification</span><br />{coord.notification}</p>
               <button className="btn btn-primary" disabled={!perm.approve} onClick={() => approveAssignment(inc.id, effective)}>Approve and send (simulated)</button>
-              {!perm.approve && <p className="small muted">Only a responder or administrator can approve. Switch role in the bar above.</p>}
+              {!perm.approve && <p className="small muted">Only a responder or administrator can approve. Sign in with an authorized account.</p>}
             </>
           )}
         </div>
@@ -121,7 +121,7 @@ function ActionPanel({ inc }) {
           <h3>Acknowledge</h3>
           <p className="small">Assigned to <strong>{responderById(inc.assignedTo)?.name}</strong>.</p>
           <button className="btn btn-primary" disabled={!perm.acknowledge} onClick={() => acknowledge(inc.id)}>Acknowledge assignment</button>
-          {!perm.acknowledge && <p className="small muted">Only a Responder can acknowledge. Switch role in the bar above.</p>}
+          {!perm.acknowledge && <p className="small muted">Only a Responder can acknowledge. Sign in with an authorized responder account.</p>}
         </div>
       )}
 
@@ -274,7 +274,7 @@ export default function IncidentDetail() {
         <div className="col">
           {perm.details && <ActionPanel key={`${inc.id}-${inc.status}-${inc.needsReview}`} inc={inc} />}
           {!perm.details && (
-            <section className="card"><h2>What happens next</h2><p>{NEXT_HINT[inc.status]}</p><p className="small muted">Responders and administrators act on this incident. Switch role in the bar above to see their view.</p></section>
+            <section className="card"><h2>What happens next</h2><p>{NEXT_HINT[inc.status]}</p><p className="small muted">Responders and administrators act on this incident through their authorized accounts.</p></section>
           )}
           {seeDetails && <section className="card"><h2>Timeline</h2><Timeline events={inc.timeline} /></section>}
           {seeDetails && inc.report && <ReportBox report={inc.report} id={inc.id} />}

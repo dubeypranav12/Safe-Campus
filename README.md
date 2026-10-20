@@ -7,6 +7,11 @@ It follows the pitch deck: report an incident, let agents assess it, have a huma
 assignment, track acknowledgement, resolve, and get a generated report. The UI and incident state run
 in the browser; assessment is enriched by the deployed ML service.
 
+The app opens on a role-based prototype login for Student, Responder and Administrator accounts.
+Sessions are kept in browser storage and passwords are never stored. This is a UI demonstration—not
+production identity verification—and must be replaced with campus SSO or a backend authentication
+service before real use.
+
 > **Honest scope:** the Assessment Agent calls the deployed SafeCampus ML API (TF-IDF + Logistic
 > Regression) and falls back to local rules when it is unavailable. The remaining agents are
 > browser-side stand-ins. Notifications are simulated, and incident data is stored in the browser's
@@ -48,6 +53,7 @@ automatically.
 | Route | Page | What it shows |
 |---|---|---|
 | `/` | Home | Problem, six-step workflow, features, theme relevance, live counts |
+| `/login` | Login | Prototype role-based sign-in for students, responders and administrators |
 | `/report` | Report an incident | Text, voice (browser speech API or simulated), photo, panic button, location capture and map picker |
 | `/dashboard` | Dashboard | Live list or board, filters, ack-overdue timers, duplicate flags |
 | `/incident/:id` | Incident detail | Status stepper, agent pipeline, questions, guidance, human review, approve / acknowledge / resolve, timeline, report |

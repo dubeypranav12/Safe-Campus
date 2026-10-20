@@ -112,7 +112,7 @@ export const BENEFITS = [
 export const SAFEGUARDS = [
   { title: 'Urgent alerts never wait for AI checks', text: 'The alert is dispatched first. AI runs alongside it.', where: 'Every new incident logs the alert before any agent step.' },
   { title: 'Uncertain cases escalate to humans', text: 'Low-confidence assessments are flagged for review.', where: 'Try a vague report such as "help".' },
-  { title: 'Role-based access to sensitive data', text: 'Students see status only, not internal details.', where: 'Switch roles in the bar under the menu.' },
+  { title: 'Role-based access to sensitive data', text: 'Students see status only, not internal details.', where: 'Sign in as a different prototype role to compare access.' },
   { title: 'Guidance from approved protocols', text: 'The Guidance Agent retrieves, it does not invent.', where: 'Incident page, guidance card.' },
   { title: 'Emergency services via authorized procedures', text: 'The system never contacts emergency services on its own.', where: 'Notifications are simulated and need human approval.' },
 ];

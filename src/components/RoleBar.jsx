@@ -1,17 +1,23 @@
-import { ROLES } from '../lib/constants.js';
-import { useIncidents } from '../context/IncidentContext.jsx';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function RoleBar() {
-  const { role, setRole } = useIncidents();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function signOut() {
+    logout();
+    navigate('/login', { replace: true });
+  }
+
   return (
     <div className="rolebar">
       <div className="container rolebar-inner">
         <span className="rolebar-note"><strong>Prototype</strong> · simulated data. In a real emergency, contact campus security or emergency services.</span>
-        <div className="rolebar-switch" role="group" aria-label="View as role">
-          <span>View as</span>
-          {ROLES.map((r) => (
-            <button key={r} className={role === r ? 'on' : ''} onClick={() => setRole(r)} aria-pressed={role === r}>{r}</button>
-          ))}
+        <div className="session-info">
+          <span className="session-role">{user?.role}</span>
+          <span className="session-id" title={user?.identifier}>{user?.identifier}</span>
+          <button type="button" onClick={signOut}>Sign out</button>
         </div>
       </div>
     </div>

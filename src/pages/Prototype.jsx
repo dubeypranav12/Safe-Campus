@@ -6,10 +6,9 @@ import { DEMO_STEPS } from '../data/content.js';
 
 export default function Prototype() {
   const navigate = useNavigate();
-  const { submitReport, setRole, resetDemo } = useIncidents();
+  const { submitReport, resetDemo } = useIncidents();
 
   function runDemo() {
-    setRole('Responder');
     const id = submitReport({
       text: 'A student has collapsed in the library and is not responding.',
       locationId: 'library',
@@ -48,7 +47,7 @@ export default function Prototype() {
         </ol>
 
         <div className="notice">
-          <strong>Run the demo scenario</strong> creates a new incident and switches you to the Responder role. Then: approve the assignment, acknowledge it, add a note and resolve it to generate the report. Switch to Administrator or Student to see role-based access.
+          <strong>Run the demo scenario</strong> creates a new incident. A Responder can approve the assignment, acknowledge it, add a note and resolve it to generate the report. Sign out and use another prototype role to see role-based access.
         </div>
 
         <div className="grid-2 section-tight">

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import RoleBar from './components/RoleBar.jsx';
 import Footer from './components/Footer.jsx';
@@ -14,6 +14,8 @@ import Prototype from './pages/Prototype.jsx';
 import Impact from './pages/Impact.jsx';
 import About from './pages/About.jsx';
 import NotFound from './pages/NotFound.jsx';
+import Login from './pages/Login.jsx';
+import { useAuth } from './context/AuthContext.jsx';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -33,21 +35,31 @@ function Layout() {
   );
 }
 
+function RequireAuth() {
+  const { user } = useAuth();
+  const location = useLocation();
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
+  return <Outlet />;
+}
+
 export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/report" element={<ReportIncident />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/incident/:id" element={<IncidentDetail />} />
-        <Route path="/map" element={<MapPage />} />
-        <Route path="/how-it-works" element={<HowItWorks />} />
-        <Route path="/architecture" element={<Architecture />} />
-        <Route path="/prototype" element={<Prototype />} />
-        <Route path="/impact" element={<Impact />} />
-        <Route path="/about" element={<About />} />
-        <Route path="*" element={<NotFound />} />
+      <Route path="/login" element={<Login />} />
+      <Route element={<RequireAuth />}>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/report" element={<ReportIncident />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/incident/:id" element={<IncidentDetail />} />
+          <Route path="/map" element={<MapPage />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/architecture" element={<Architecture />} />
+          <Route path="/prototype" element={<Prototype />} />
+          <Route path="/impact" element={<Impact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Route>
     </Routes>
   );
