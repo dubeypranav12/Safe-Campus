@@ -34,7 +34,10 @@ export default function Login() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [role, setRole] = useState('Student');
+  const suggestedRole = ACCOUNT_TYPES.some((item) => item.role === location.state?.suggestedRole)
+    ? location.state.suggestedRole
+    : 'Student';
+  const [role, setRole] = useState(suggestedRole);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,14 +46,17 @@ export default function Login() {
 
   if (user) return <Navigate to="/" replace />;
 
-  const destination = location.state?.from?.pathname || '/';
+  const returnLocation = location.state?.from;
+  const destination = returnLocation
+    ? `${returnLocation.pathname}${returnLocation.search || ''}${returnLocation.hash || ''}`
+    : '/';
 
   function submit(event) {
     event.preventDefault();
     setError('');
     try {
       login({ role, identifier, password });
-      navigate(destination, { replace: true });
+      navigate(destination, { replace: true, state: returnLocation?.state });
     } catch (loginError) {
       setError(loginError.message);
     }

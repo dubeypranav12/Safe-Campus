@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CategoryBadge, StatusBadge, UrgencyBadge } from '../components/Badges.jsx';
 import Timeline from '../components/Timeline.jsx';
 import useNow from '../components/useNow.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useIncidents } from '../context/IncidentContext.jsx';
 import { AGENT_NAMES, CATEGORIES, PERMISSIONS, RESPONDERS, STATUSES, URGENCIES, locationById, responderById } from '../lib/constants.js';
 import { findDuplicates } from '../lib/duplicates.js';
@@ -10,7 +11,7 @@ import { fmtDateTime, fmtDuration, slaState } from '../lib/format.js';
 
 const NEXT_HINT = {
   Reported: 'The agents are structuring and assessing this report.',
-  Assessed: 'Next: a human reviews the suggested responders and approves the assignment.',
+  Assessed: 'Automated checks are complete. The incident is waiting for a responder or administrator to approve the assignment.',
   Assigned: 'Next: the responder acknowledges the assignment.',
   Acknowledged: 'Next: the responder handles it, adds notes, then marks it resolved.',
   Resolved: 'Closed. The Reporting Agent compiled the report below.',
@@ -168,6 +169,40 @@ function ReportBox({ report, id }) {
   );
 }
 
+function StudentHandoff({ inc }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const automatedChecksDone = ['intake', 'assessment', 'coordination', 'guidance']
+    .every((agent) => inc.agentsDone?.[agent]);
+  const needsResponder = ['Assessed', 'Assigned', 'Acknowledged'].includes(inc.status);
+
+  function continueAsResponder() {
+    logout();
+    navigate('/login', {
+      replace: true,
+      state: { from: location, suggestedRole: 'Responder' },
+    });
+  }
+
+  return (
+    <section className={`card handoff-card${automatedChecksDone && needsResponder ? ' ready' : ''}`}>
+      <p className="eyebrow">Workflow handoff</p>
+      <h2>{automatedChecksDone && needsResponder ? 'Assessment complete — human action required' : 'What happens next'}</h2>
+      <p>{NEXT_HINT[inc.status]}</p>
+      {automatedChecksDone && inc.status === 'Assessed' && (
+        <p className="small muted">The progress bar remains at step 2 by design until an authorized user approves the recommended responder.</p>
+      )}
+      {needsResponder && (
+        <button type="button" className="btn btn-primary" onClick={continueAsResponder}>
+          Continue preview as Responder
+        </button>
+      )}
+      <p className="small muted handoff-note">Your incident stays in this browser while you sign in with the next prototype role.</p>
+    </section>
+  );
+}
+
 export default function IncidentDetail() {
   const { id } = useParams();
   const location = useLocation();
@@ -273,9 +308,7 @@ export default function IncidentDetail() {
 
         <div className="col">
           {perm.details && <ActionPanel key={`${inc.id}-${inc.status}-${inc.needsReview}`} inc={inc} />}
-          {!perm.details && (
-            <section className="card"><h2>What happens next</h2><p>{NEXT_HINT[inc.status]}</p><p className="small muted">Responders and administrators act on this incident through their authorized accounts.</p></section>
-          )}
+          {!perm.details && <StudentHandoff inc={inc} />}
           {seeDetails && <section className="card"><h2>Timeline</h2><Timeline events={inc.timeline} /></section>}
           {seeDetails && inc.report && <ReportBox report={inc.report} id={inc.id} />}
         </div>
