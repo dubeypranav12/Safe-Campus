@@ -41,8 +41,8 @@ export const JOURNEY = [
 export const AGENTS = [
   { key: 'intake', name: 'Intake', does: 'Structures text, voice and image reports', tools: ['Speech-to-text', 'Image input'],
     sim: 'Extracts a summary, location and input type from the report.' },
-  { key: 'assessment', name: 'Assessment', does: 'Suggests category and urgency; flags uncertainty', tools: ['LLM with structured output'],
-    sim: 'Keyword rules with a confidence score. Low confidence escalates to a human.' },
+  { key: 'assessment', name: 'Assessment', does: 'Suggests category and urgency; flags uncertainty', tools: ['SafeCampus ML API'],
+    sim: 'Uses the deployed ML service, with local keyword rules as a resilient fallback. Low confidence escalates to a human.' },
   { key: 'coordination', name: 'Coordination', does: 'Recommends responders; drafts notifications', tools: ['Maps', 'Notification service'],
     sim: 'Ranked responder rules per category. Notification is drafted, then sent only after human approval (simulated send).' },
   { key: 'guidance', name: 'Guidance', does: 'Retrieves campus-approved instructions', tools: ['Protocol store'],
@@ -74,9 +74,9 @@ export const DETERMINISTIC_HANDLES = [
 
 export const STACK = [
   { layer: 'Frontend', proposed: 'React: reports and dashboard', here: 'This React prototype (Vite + React Router)' },
-  { layer: 'Backend API', proposed: 'FastAPI or Node.js', here: 'Not built. State lives in a React context.' },
+  { layer: 'Backend API', proposed: 'FastAPI or Node.js', here: 'SafeCampus FastAPI ML service connected for assessment.' },
   { layer: 'Database', proposed: 'PostgreSQL / Supabase + real-time updates', here: 'Browser localStorage (one shared incident record)' },
-  { layer: 'AI', proposed: 'LLM with structured tool calling', here: 'Rule-based simulated agents' },
+  { layer: 'AI', proposed: 'LLM with structured tool calling', here: 'TF-IDF + Logistic Regression ML assessment, with local fallback' },
   { layer: 'Speech', proposed: 'Speech-to-text', here: 'Browser speech API if available, otherwise simulated' },
   { layer: 'Maps', proposed: 'Map service', here: 'Schematic sample campus map' },
 ];
@@ -96,7 +96,7 @@ export const FEATURES = [
 export const DEMO_STEPS = [
   { title: 'Student reports a medical incident', status: 'Implemented', where: 'Report page', to: '/report' },
   { title: 'Location captured', status: 'Simulated', where: 'Map picker + simulated GPS', to: '/report' },
-  { title: 'Incident structured by agents', status: 'Simulated', where: 'Rule-based agents stand in for an LLM', to: '/architecture' },
+  { title: 'Incident assessed by ML', status: 'Implemented', where: 'SafeCampus ML API + local fallback', to: '/architecture' },
   { title: 'Responder assignment approved', status: 'Implemented', where: 'Incident page (human approval)', to: '/dashboard' },
   { title: 'Notification sent', status: 'Simulated', where: 'Logged to the timeline; nothing is sent', to: '/dashboard' },
   { title: 'Acknowledgement updates dashboard', status: 'Implemented', where: 'Incident page + dashboard', to: '/dashboard' },

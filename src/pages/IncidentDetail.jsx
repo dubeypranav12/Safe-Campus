@@ -57,6 +57,8 @@ function AgentRow({ inc, keyName, state }) {
         <>
           <p>Suggested <strong>{a.category}</strong> / <strong>{a.urgency}</strong>. {a.rationale}</p>
           <div className="conf"><span>Confidence {Math.round(a.confidence * 100)}%</span><div className="bar"><i style={{ width: `${a.confidence * 100}%` }} /></div></div>
+          {a.source && <p className="muted small">Source: {a.source}{a.modelType ? ` · ${a.modelType}` : ''}</p>}
+          {a.recommendedAction && <p className="small"><strong>ML recommendation:</strong> {a.recommendedAction}</p>}
           {a.uncertain && <p className="text-warn small">Low confidence, so a human reviews this.</p>}
         </>
       )}

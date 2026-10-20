@@ -4,11 +4,13 @@ Working front-end prototype of **SafeCampus: Agentic AI for Campus Emergency Coo
 (JAI 2026, team *The Ultimate Descenders*, Ajay Kumar Garg Engineering College).
 
 It follows the pitch deck: report an incident, let agents assess it, have a human approve the
-assignment, track acknowledgement, resolve, and get a generated report. Everything runs in the browser.
+assignment, track acknowledgement, resolve, and get a generated report. The UI and incident state run
+in the browser; assessment is enriched by the deployed ML service.
 
-> **Honest scope:** there is no backend and no real LLM. The five agents are rule-based stand-ins
-> (`src/lib/agents.js`) so the flow can be demonstrated offline. Notifications are simulated.
-> Incident data is stored in the browser's `localStorage`. All names, places and protocols are samples.
+> **Honest scope:** the Assessment Agent calls the deployed SafeCampus ML API (TF-IDF + Logistic
+> Regression) and falls back to local rules when it is unavailable. The remaining agents are
+> browser-side stand-ins. Notifications are simulated, and incident data is stored in the browser's
+> `localStorage`. All names, places and protocols are samples.
 
 ## Run it
 
@@ -21,20 +23,16 @@ npm run preview    # serve the build
 
 Requires Node 18+.
 
-## Backend integration
+## ML backend integration
 
-The deployed frontend works without a backend today. When the backend is ready, copy the example
-environment file and point the app at the API:
+The frontend calls `POST /api/ml/assess`. Vite proxies that path during development and Vercel
+rewrites it in production to:
 
-```bash
-cp .env.example .env.local
-# Set VITE_API_BASE_URL=http://localhost:8000 (or your backend URL)
-npm run dev
-```
+`https://safecampus-ml-work-1.onrender.com/api/ml/assess`
 
-Use `apiRequest` from `src/lib/api.js` when replacing the current localStorage actions with API
-calls. For the production deployment, add `VITE_API_BASE_URL` to the Vercel project's environment
-variables and redeploy. The backend must allow CORS requests from the Vercel frontend domain.
+No production environment variable is required because the browser uses the same-origin proxy. To
+call a different backend directly, set `VITE_API_BASE_URL`; that backend must allow CORS from the
+frontend origin.
 
 Do not commit `.env.local` or secrets. Vite variables are included in browser code, so this setting
 must contain only the public backend URL, never an API key or database password.

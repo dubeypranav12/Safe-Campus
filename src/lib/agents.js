@@ -1,6 +1,5 @@
-// SIMULATED agents.
-// In the proposed system these steps are done by an LLM with structured tool calling.
-// In this prototype they are rule-based stand-ins so the full flow can be demonstrated offline.
+// Browser-side agents. Assessment can be replaced by the deployed ML result;
+// these deterministic rules also keep the complete flow available offline.
 import { RESPONDER_RANK, locationById, responderById } from './constants.js';
 import { fmtDuration, fmtTime, eventTime } from './format.js';
 
@@ -103,13 +102,7 @@ export function assessmentAgent(inc) {
   const urgentHits = matched(text, URGENT_WORDS);
   const urgency = inc.panic || urgentHits.length ? 'Urgent' : BASE_URGENCY[category];
 
-  const questions = [];
-  if (!inc.locationId) questions.push('Exact location (building / floor)?');
-  if (category === 'Medical') questions.push('Is the person conscious and breathing?');
-  if (category === 'Fire alarm') questions.push('Is anyone still inside the affected area?');
-  if (category === 'Security') questions.push('Is anyone in immediate danger?');
-  if (category === 'Hazard') questions.push('Is the area blocked or cordoned off?');
-  if (text.length < 25 && !inc.panic) questions.push('Can you add a few more details about what happened?');
+  const questions = assessmentQuestions(inc, category);
 
   const uncertain = confidence < 0.6;
   return {
@@ -123,6 +116,18 @@ export function assessmentAgent(inc) {
       ? `Matched ${signals.length} signal(s): ${signals.join(', ')}.`
       : 'No clear category signals found in the report.',
   };
+}
+
+export function assessmentQuestions(inc, category) {
+  const text = lc(inc.text);
+  const questions = [];
+  if (!inc.locationId) questions.push('Exact location (building / floor)?');
+  if (category === 'Medical') questions.push('Is the person conscious and breathing?');
+  if (category === 'Fire alarm') questions.push('Is anyone still inside the affected area?');
+  if (category === 'Security') questions.push('Is anyone in immediate danger?');
+  if (category === 'Hazard') questions.push('Is the area blocked or cordoned off?');
+  if (text.length < 25 && !inc.panic) questions.push('Can you add a few more details about what happened?');
+  return questions;
 }
 
 export function coordinationAgent(inc, assessment) {

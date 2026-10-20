@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from 'react';
 import { seedIncidents } from '../lib/seed.js';
 import {
-  analyze, assessmentAgent, coordinationAgent, guidanceAgent, intakeAgent, reportingAgent, ev,
+  analyze, coordinationAgent, guidanceAgent, intakeAgent, reportingAgent, ev,
 } from '../lib/agents.js';
 import { AGENT_NAMES, PERMISSIONS, canTransition, locationById, responderById } from '../lib/constants.js';
+import { requestMlAssessment } from '../lib/ml.js';
 
 const STORAGE_KEY = 'safecampus.prototype.v1';
 const PIPELINE = ['intake', 'assessment', 'coordination', 'guidance'];
@@ -52,30 +53,52 @@ export function IncidentProvider({ children }) {
   const update = useCallback((id, fn) => dispatch({ type: 'UPDATE', id, fn }), []);
 
   // ---- Orchestrator: runs one agent step against the shared incident record -------------------
-  const runStep = useCallback((id, agent) => {
+  const runStep = useCallback(async (id, agent) => {
+    if (agent === 'assessment') {
+      const current = stateRef.current.incidents.find((inc) => inc.id === id);
+      if (!current || current.agentsDone?.assessment) return;
+
+      const assessment = await requestMlAssessment(current);
+      update(id, (inc) => {
+        if (inc.agentsDone?.assessment) return inc;
+        const timeline = [
+          ...inc.timeline,
+          ev(
+            AGENT_NAMES.assessment,
+            'agent',
+            `${assessment.source} suggested ${assessment.category} / ${assessment.urgency} (confidence ${assessment.confidence})`,
+          ),
+        ];
+        if (assessment.uncertain) {
+          timeline.push(ev('System', 'escalation', 'Low confidence: escalated to a human reviewer'));
+        }
+        if (assessment.fallbackReason) {
+          timeline.push(ev('System', 'agent', `${assessment.fallbackReason} Continued with local assessment rules.`));
+        }
+        return {
+          ...inc,
+          category: assessment.category,
+          urgency: assessment.urgency,
+          needsReview: assessment.uncertain,
+          status: inc.status === 'Reported' ? 'Assessed' : inc.status,
+          agents: { ...inc.agents, assessment },
+          agentsDone: { ...inc.agentsDone, assessment: true },
+          timeline,
+        };
+      });
+      return;
+    }
+
     update(id, (inc) => {
       if (inc.agentsDone?.[agent]) return inc;
       const agents = { ...inc.agents };
       const done = { ...inc.agentsDone, [agent]: true };
-      let extra = {};
       const events = [];
 
       if (agent === 'intake') {
         const o = intakeAgent(inc);
         agents.intake = o;
         events.push(ev(AGENT_NAMES.intake, 'agent', `Structured report: "${o.summary}"`));
-      }
-      if (agent === 'assessment') {
-        const o = assessmentAgent(inc);
-        agents.assessment = o;
-        extra = {
-          category: o.category,
-          urgency: o.urgency,
-          needsReview: o.uncertain,
-          status: inc.status === 'Reported' ? 'Assessed' : inc.status,
-        };
-        events.push(ev(AGENT_NAMES.assessment, 'agent', `Suggested ${o.category} / ${o.urgency} (confidence ${o.confidence})`));
-        if (o.uncertain) events.push(ev('System', 'escalation', 'Low confidence: escalated to a human reviewer'));
       }
       if (agent === 'coordination') {
         const o = coordinationAgent({ ...inc, agents }, agents.assessment);
@@ -87,12 +110,15 @@ export function IncidentProvider({ children }) {
         agents.guidance = o;
         events.push(ev(AGENT_NAMES.guidance, 'agent', `Retrieved protocol: ${o.title}`));
       }
-      return { ...inc, ...extra, agents, agentsDone: done, timeline: [...inc.timeline, ...events] };
+      return { ...inc, agents, agentsDone: done, timeline: [...inc.timeline, ...events] };
     });
   }, [update]);
 
-  const schedulePipeline = useCallback((id) => {
-    PIPELINE.forEach((agent, idx) => setTimeout(() => runStep(id, agent), (idx + 1) * STEP_DELAY));
+  const schedulePipeline = useCallback(async (id) => {
+    for (const agent of PIPELINE) {
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, STEP_DELAY));
+      await runStep(id, agent);
+    }
   }, [runStep]);
 
   // Resume any pipeline interrupted by a page reload.

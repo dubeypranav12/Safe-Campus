@@ -2,6 +2,14 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "rewrites": [
+    {
+      "source": "/api/ml/assess",
+      "destination": "https://safecampus-ml-work-1.onrender.com/api/ml/assess"
+    },
+    {
+      "source": "/api/ml/classify",
+      "destination": "https://safecampus-ml-work-1.onrender.com/api/ml/classify"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
